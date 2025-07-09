@@ -2,7 +2,7 @@ use sdl2::rect::Point;
 use sdl2::pixels::Color;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
-
+use crate::Ray;
 
 static GLOW_FACTOR: f32 = 1.3;
 
@@ -10,6 +10,8 @@ pub struct Body {
     pub color: Color,
     pub position: (f32, f32),
     pub radius: f32,
+    pub coordenates: Vec<(f32, f32)>,
+    pub center: (f32, f32),
     pub glow: Option<bool>,
 }
 
@@ -17,34 +19,46 @@ impl Body {
     pub fn new(
         color: Color, position: (f32, f32), radius: f32, glow: Option<bool>
     ) -> Body {
+        let center: (f32, f32) = (position.0, position.1);
+
+        let coordenates: Vec<(f32, f32)> = Self::get_coordenates(radius, center);
 
         Body {
             color: color,
             position: position,
             radius: radius,
+            coordenates: coordenates,
+            center: center,
             glow: glow,
         }
     }
 
-    pub fn render(&self, canvas: &mut Canvas<Window>) {
-        let center: (f32, f32) = (self.position.0, self.position.1);
-
+    fn get_coordenates(radius: f32, center: (f32, f32)) -> Vec<(f32, f32)> {
         let (cx, cy) = center;
-        canvas.set_draw_color(self.color);
+
+        let mut coordenates: Vec<(f32, f32)> = vec![];
     
         for degree in 0..360 {
             let rad = (degree as f64).to_radians();
-            let x = cx + (rad.cos() * self.radius as f64) as f32;
-            let y = cy + (rad.sin() * self.radius as f64) as f32;
+            let x = cx + (rad.cos() * radius as f64) as f32;
+            let y = cy + (rad.sin() * radius as f64) as f32;
 
-            let _ = canvas.draw_point(Point::new(x as i32, y as i32));
+            coordenates.push((x, y));
+        }
+        coordenates
+    }
+
+    pub fn render(&self, canvas: &mut Canvas<Window>) {
+        for (x, y) in &self.coordenates {
+            canvas.set_draw_color(self.color);
+            let _ = canvas.draw_point(Point::new(*x as i32, *y as i32));
         }
 
         if self.glow.is_some() {
-            self.render_glow(canvas, center);
+            self.render_glow(canvas, self.center);
         }
 
-        self.fill_color(canvas, center, self.radius, self.color);
+        self.fill_color(canvas, self.center, self.radius, self.color);
     }
 
     fn render_glow(&self, canvas: &mut Canvas<Window>, center: (f32, f32)) {
@@ -114,9 +128,26 @@ impl Body {
         }
     }
 
-    pub fn change_position(&mut self, x: f32, y: f32) {
-        self.position.0 += x;
-        self.position.1 += y;
+    // pub fn change_position(&mut self, x: f32, y: f32) {
+    //     self.position.0 += x;
+    //     self.position.1 += y;
+    // }
+
+    pub fn handle_ray_collision(&self, ray: &Ray) {
+        // println!("Coordenates: {:?}", &self.coordenates);
+        let mut bigger: f32 = 0.0;
+
+        for point in &ray.points {
+            for coord in &self.coordenates {
+                if coord.0 > bigger {
+                    bigger = coord.0;
+                }
+                if point >= coord {
+                    println!("{:?}", point);          
+                }
+            }
+        }
+        // println!("Bigger: {:?}", bigger);
     }
 }
 

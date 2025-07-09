@@ -52,7 +52,7 @@ fn main() {
     );
 
     let ray: Ray = Ray::new(
-        Color::RGB(255, 255, 255), &light_source.position, 0.0 
+        &light_source.position, 0.0 
     );
 
     while running {
@@ -74,7 +74,8 @@ fn main() {
         light_source.render(&mut canvas);
         ray.render(&mut canvas);
 
-        // light_source.change_position(mouse_position.0 as f32, mouse_position.0 as f32);
+        ray.handle_collisions(vec![&ball]);
+        // ball.handle_ray_collision(&ray);
 
         canvas.present();
 
