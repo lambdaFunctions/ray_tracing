@@ -3,8 +3,6 @@ use sdl2::pixels::Color;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
 
-static GLOW_FACTOR: f32 = 1.3;
-
 pub struct Body {
     pub color: Color,
     pub position: (f32, f32),
@@ -131,9 +129,9 @@ impl Body {
         let radius: f32 = 10.0;
 
         for collision_coordenate in collision_coordenates {
-            let light_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
-                radius, collision_coordenate
-            );
+            // let light_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
+            //     radius, collision_coordenate
+            // );
 
             self.fill_color(
                 canvas,
@@ -170,7 +168,8 @@ impl Body {
         for body_coordenate in &self.coordenates {
             for light_coordenate in &light_coordenates {
                 if body_coordenate.0 <= light_coordenate.0 
-                && body_coordenate.1 >= light_coordenate.1 - radius && body_coordenate.1 <= light_coordenate.1 + radius
+                && body_coordenate.1 >= light_coordenate.1 - radius
+                && body_coordenate.1 <= light_coordenate.1 + radius
                 // && body_coordenate.1 >= (collision_coordenates.1 - radius) && body_coordenate.1 <= (collision_coordenates.1 + radius)
                 {
                     self.draw_pixel(canvas, (body_coordenate.0, body_coordenate.1));
