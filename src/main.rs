@@ -68,8 +68,6 @@ fn main() {
         let collision_coordenates: (f32, f32) = ray.handle_collisions(vec![&ball]);
         // ball.handle_ray_collision(&ray);
 
-        // println!("{:?}", collision_coordenates);
-
         ball.draw_lighted_pixels(&mut canvas, collision_coordenates);
 
         canvas.present();
