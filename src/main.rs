@@ -44,7 +44,7 @@ fn main() {
         Some(true),
     );
 
-    let ray: Ray = Ray::new(&light_source.position, 0.0);
+    let mut ray: Ray = Ray::new(&light_source.position);
 
     while running {
         background_view.render(&mut canvas);
@@ -65,9 +65,10 @@ fn main() {
         light_source.render(&mut canvas);
         ray.render(&mut canvas);
 
-        let collision_coordenates: (f32, f32) = ray.handle_collisions(vec![&ball]);
-        // ball.handle_ray_collision(&ray);
+        // let collision_coordenates: (f32, f32) = ray.handle_collisions(vec![&ball]);
+        let collision_coordenates: Vec<(f32, f32)> = ray.handle_collisions(&ball);
 
+        // ball.draw_lighted_pixels(&mut canvas, collision_coordenates);
         ball.draw_lighted_pixels(&mut canvas, collision_coordenates);
 
         canvas.present();

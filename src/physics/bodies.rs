@@ -35,42 +35,36 @@ impl Body {
         }
     }
 
-    fn get_inner_coordenates(radius: f32, center: (f32, f32)) -> Vec<(f32, f32)> {
+    fn get_coordenates(radius: f32, center: (f32, f32)) -> Vec<(f32, f32)> {
         let (cx, cy) = center;
-        let mut inner_coordenates: Vec<(f32, f32)> = vec![];
+
+        let mut coordenates: Vec<(f32, f32)> = vec![];
 
         for y in -radius as i32..=radius as i32{
             let y_pwr: f32 = y.pow(2) as f32;
             let x_span = (radius.powf(2.0) - y_pwr).sqrt();
 
             for x in -x_span as i32..=x_span as i32 {
-                inner_coordenates.push(
-                    (cx + x as f32, cy + y as f32)
-                )
+                coordenates.push((cx + x as f32, cy + y as f32))
             }
         }
-        inner_coordenates
-    }
-
-    fn get_coordenates(radius: f32, center: (f32, f32)) -> Vec<(f32, f32)> {
-        let (cx, cy) = center;
-
-        let mut coordenates: Vec<(f32, f32)> = vec![];
-    
-        for degree in 0..360 {
-            let rad = (degree as f64).to_radians();
-            let x = cx + (rad.cos() * radius as f64) as f32;
-            let y = cy + (rad.sin() * radius as f64) as f32;
-
-            coordenates.push((x, y));
-        }
         coordenates
+        // let mut coordenates: Vec<(f32, f32)> = vec![];
+    
+        // for degree in 0..360 {
+        //     let rad = (degree as f64).to_radians();
+        //     let x = cx + (rad.cos() * radius as f64) as f32;
+        //     let y = cy + (rad.sin() * radius as f64) as f32;
+
+        //     coordenates.push((x, y));
+        // }
+        // coordenates
     }
 
     pub fn render(&self, canvas: &mut Canvas<Window>) {
         for (x, y) in &self.coordenates {
             canvas.set_draw_color(self.color);
-            let _ = canvas.draw_point(Point::new(*x as i32, *y as i32));
+            self.draw_pixel(canvas, (*x, *y));
         }
 
         if self.glow.is_some() {
@@ -78,71 +72,29 @@ impl Body {
         }
 
         self.fill_color(canvas, self.center, self.radius, self.color);
-        // TODO: Remover esse `.clone` para melhorar a performance.
-        // self.fill_color(canvas, self.coordenates.clone());
     }
 
     fn render_glow(&self, canvas: &mut Canvas<Window>, center: (f32, f32)) {
-        let (cx, cy) = center;
-
         let tones: Vec<(u8, u8, u8)> = vec![
-            (230, 230, 230),
-            (204, 204, 204),
-            (179, 179, 179),
-            (153, 153, 153),
-            (128, 128, 128),
-            (102, 102, 102),
-            (77, 77, 77),
-            (51, 51, 51),
             (26, 26, 26),
+            (51, 51, 51),
+            (77, 77, 77),
+            (102, 102, 102),
+            (128, 128, 128),
+            (153, 153, 153),
+            (179, 179, 179),
+            (204, 204, 204),
+            (230, 230, 230),
         ];
 
+        let delta: f32 = 3.0;
+        let mut radius: f32 = self.radius.clone() * 3.0;
+
         for tone in tones {
-            let mut coordenates: Vec<(f32, f32)> = vec![];
-
-            let color: Color = Color::RGB(tone.0, tone.1, tone.2);
-
-            canvas.set_draw_color(color);
-
-            let mut cur_radius: f32 = self.radius;
-            let mut prev_radius: f32 = self.radius;
-            let mut prev_x: f32 = 0.0;
-            let mut prev_y: f32 = 0.0;
-           
-            for degree in 0..360 {
-                let rad = (degree as f64).to_radians();
-                cur_radius = cur_radius * GLOW_FACTOR;
-                let mut cur_x: f32 = cx + (rad.cos() * self.radius as f64) as f32 * GLOW_FACTOR;
-                let mut cur_y: f32 = cy + (rad.sin() * self.radius as f64) as f32 * GLOW_FACTOR;
- 
-                if prev_x == 0.0 {
-                    prev_radius = cur_radius;
-                    prev_x = cur_x;
-                    prev_y = cur_y;
-                } else {
-                    cur_radius = prev_radius * GLOW_FACTOR;
-                    cur_x = prev_x * GLOW_FACTOR;
-                    cur_y = prev_y * GLOW_FACTOR;
-                }
-                let _ = canvas.draw_point(Point::new(cur_x as i32, cur_y as i32));
-                coordenates.push((cur_x, cur_y));
-            }
-            self.fill_color(canvas, center, cur_radius, color); 
-            // self.fill_color(canvas, coordenates); 
-        }
+            self.fill_color(canvas, center, radius, Color::RGB(tone.0, tone.1, tone.2));
+            radius -= delta;
+        } 
     }
-
-    // fn fill_color(
-    //     &self,
-    //     canvas: &mut Canvas<Window>,
-    //     coordenates: Vec<(f32, f32)>,
-    // ) {
-    //     for coord in coordenates {
-    //         let _ = canvas.draw_point(
-    //             Point::new(coord.0 as i32, coord.1 as i32)
-    //         );
-    //     }
-    // }
 
     fn fill_color(
         &self,
@@ -173,10 +125,31 @@ impl Body {
     }
 
     pub fn draw_lighted_pixels(
+        &self, canvas: &mut Canvas<Window>, collision_coordenates: Vec<(f32, f32)>
+    ) {
+        let pink: Color = Color::RGB(255, 0, 127);
+        let radius: f32 = 10.0;
+
+        for collision_coordenate in collision_coordenates {
+            let light_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
+                radius, collision_coordenate
+            );
+
+            self.fill_color(
+                canvas,
+                collision_coordenate,
+                radius,
+                pink,
+            );
+        }
+    }
+
+    pub fn draw_lighted_pixels2(
         &self, canvas: &mut Canvas<Window>, collision_coordenates: (f32, f32)
     ) {
-        // canvas.set_draw_color(Color::RGB(52, 204, 235));
-        canvas.set_draw_color(Color::RGB(255, 0, 127));
+        // let light_orange: Color = Color::RGB(255, 155, 127);
+        // let light_blue: Color = Color::RGB(52, 204, 235);
+        // let pink: Color = Color::RGB(255, 0, 127);
 
         // TODO: O raio do circulo que fara sombra sobre o corpo devera ser
         // baseado na distancia da fonte de luz ate o objeto.
@@ -190,10 +163,11 @@ impl Body {
         //     canvas,
         //     collision_coordenates,
         //     radius,
-        //     Color::RGB(255, 155, 127),
+        //     pink,
         // );
 
-        for body_coordenate in Self::get_inner_coordenates(self.radius, self.position) {
+        // for body_coordenate in Self::get_coordenates(self.radius, self.position) {
+        for body_coordenate in &self.coordenates {
             for light_coordenate in &light_coordenates {
                 if body_coordenate.0 <= light_coordenate.0 
                 && body_coordenate.1 >= light_coordenate.1 - radius && body_coordenate.1 <= light_coordenate.1 + radius
