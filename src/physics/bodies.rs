@@ -2,7 +2,6 @@ use sdl2::rect::Point;
 use sdl2::pixels::Color;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
-use crate::Ray;
 
 static GLOW_FACTOR: f32 = 1.3;
 
@@ -17,7 +16,10 @@ pub struct Body {
 
 impl Body {
     pub fn new(
-        color: Color, position: (f32, f32), radius: f32, glow: Option<bool>
+        color: Color,
+        position: (f32, f32),
+        radius: f32,
+        glow: Option<bool>,
     ) -> Body {
         let center: (f32, f32) = (position.0, position.1);
 
@@ -123,31 +125,60 @@ impl Body {
             let x_span = (radius.powf(2.0) - y_pwr).sqrt();
 
             for x in -x_span as i32..=x_span as i32 {
-                let _ = canvas.draw_point(Point::new((cx + x as f32) as i32, (cy + y as f32) as i32));
+                let _ = canvas.draw_point(
+                    Point::new((cx + x as f32) as i32, (cy + y as f32) as i32)
+                );
             }
         }
+    }
+
+    // TODO: Criar aqui a funcao que desenha o que seria a area iluminada
+    // para me certificar de que o circulo esta sendo construido corretamente.
+
+    pub fn draw_lighted_pixels(
+        &self, canvas: &mut Canvas<Window>, collision_coordenates: (f32, f32)
+    ) {
+        // canvas.set_draw_color(Color::RGB(52, 204, 235));
+        canvas.set_draw_color(Color::RGB(255, 0, 127));
+
+        // TODO: O raio do circulo que fara sombra sobre o corpo devera ser
+        // baseado na distancia da fonte de luz ate o objeto.
+        let radius: f32 = 7.0;
+
+        let light_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
+            radius, collision_coordenates
+        );
+
+        for coordenates in &self.coordenates {
+            // if light_coordenates.contains(&coordenates) {
+            if self.should_draw_pixel(&light_coordenates, *coordenates) {
+                let _ = canvas.draw_point(
+                    Point::new(coordenates.0 as i32, coordenates.1 as i32)
+                );
+            }
+        }
+    }
+
+    fn should_draw_pixel(
+        &self,
+        light_coordenates: &Vec<(f32, f32)>,
+        body_coordenates: (f32, f32),
+    ) -> bool {
+        for coordenates in light_coordenates {
+            if body_coordenates.0 <= coordenates.0 && 
+                body_coordenates.1 <= coordenates.1 {
+                return true
+            } else if body_coordenates.0 <= coordenates.0 && 
+                body_coordenates.1 >= coordenates.1 {
+                return true
+            }
+        }
+        return false
     }
 
     // pub fn change_position(&mut self, x: f32, y: f32) {
     //     self.position.0 += x;
     //     self.position.1 += y;
     // }
-
-    pub fn handle_ray_collision(&self, ray: &Ray) {
-        // println!("Coordenates: {:?}", &self.coordenates);
-        let mut bigger: f32 = 0.0;
-
-        for point in &ray.points {
-            for coord in &self.coordenates {
-                if coord.0 > bigger {
-                    bigger = coord.0;
-                }
-                if point >= coord {
-                    println!("{:?}", point);          
-                }
-            }
-        }
-        // println!("Bigger: {:?}", bigger);
-    }
 }
 

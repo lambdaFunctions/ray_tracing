@@ -59,31 +59,31 @@ impl Ray {
         }
     }
 
-    pub fn handle_collisions(&self, bodies: Vec<&Body>) {
+    // fn delete_points(&mut self, index: usize) {
+    //     self.points.drain(index..);
+    // }
+
+    pub fn handle_collisions(&self, bodies: Vec<&Body>) -> (f32, f32) {
+        let mut coordenates: (f32, f32) = (0.0, 0.0);
         let mut stop: bool = false;
 
         for body in bodies {
-            for point in &self.points {
+            for point in self.points.clone() {
                 for coord in &body.coordenates {
                     if point.0 >= coord.0 && point.1 >= coord.1 {
-                        // println!("{:?}", point);
-                        if let Some(index) = &self.points.iter().position(|&x| x == *point) {
-                            println!("INDEX::: {:?}", index);
-                            println!("POINTS::: {:?}", &self.points);
-                            println!("POINT::: {:?}", &self.points[*index]);
-                            // &self.points.drain(index..&self.points.len())
-                            stop = true;
-                        };
+                        coordenates = *coord;
+                        stop = true;
                     }
                     if stop == true {
-                        break;
+                        break
                     }                  
                 }
                 if stop == true {
-                    break;
+                    break
                 }
             }
         }
+        coordenates
     }
 }
 
