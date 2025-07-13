@@ -8,6 +8,7 @@ pub struct Body {
     pub position: (f32, f32),
     pub radius: f32,
     pub coordenates: Vec<(f32, f32)>,
+    pub circunference: Vec<(f32, f32)>,
     pub center: (f32, f32),
     pub glow: Option<bool>,
 }
@@ -22,12 +23,14 @@ impl Body {
         let center: (f32, f32) = (position.0, position.1);
 
         let coordenates: Vec<(f32, f32)> = Self::get_coordenates(radius, center);
+        let circunference: Vec<(f32, f32)> = Self::get_circunference(radius, center);
 
         Body {
             color: color,
             position: position,
             radius: radius,
             coordenates: coordenates,
+            circunference: circunference,
             center: center,
             glow: glow,
         }
@@ -47,16 +50,20 @@ impl Body {
             }
         }
         coordenates
-        // let mut coordenates: Vec<(f32, f32)> = vec![];
-    
-        // for degree in 0..360 {
-        //     let rad = (degree as f64).to_radians();
-        //     let x = cx + (rad.cos() * radius as f64) as f32;
-        //     let y = cy + (rad.sin() * radius as f64) as f32;
+    }
 
-        //     coordenates.push((x, y));
-        // }
-        // coordenates
+    fn get_circunference(radius: f32, center: (f32, f32)) -> Vec<(f32, f32)> {
+        let (cx, cy) = center;
+        let mut circunference: Vec<(f32, f32)> = vec![];
+    
+        for degree in 0..360 {
+            let rad = (degree as f64).to_radians();
+            let x = cx + (rad.cos() * radius as f64) as f32;
+            let y = cy + (rad.sin() * radius as f64) as f32;
+
+            circunference.push((x, y));
+        }
+        circunference
     }
 
     pub fn render(&self, canvas: &mut Canvas<Window>) {
@@ -122,68 +129,64 @@ impl Body {
         );
     }
 
-    pub fn draw_lighted_pixels(
-        &self, canvas: &mut Canvas<Window>, collision_coordenates: Vec<(f32, f32)>
+    fn draw_light_ball(
+        &self,
+        canvas: &mut Canvas<Window>,
+        coordenate: (f32, f32),
     ) {
-        let pink: Color = Color::RGB(255, 0, 127);
-        let radius: f32 = 10.0;
-
-        for collision_coordenate in collision_coordenates {
-            // let light_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
-            //     radius, collision_coordenate
-            // );
-
-            self.fill_color(
-                canvas,
-                collision_coordenate,
-                radius,
-                pink,
-            );
-        }
-    }
-
-    pub fn draw_lighted_pixels2(
-        &self, canvas: &mut Canvas<Window>, collision_coordenates: (f32, f32)
-    ) {
-        // let light_orange: Color = Color::RGB(255, 155, 127);
-        // let light_blue: Color = Color::RGB(52, 204, 235);
-        // let pink: Color = Color::RGB(255, 0, 127);
-
-        // TODO: O raio do circulo que fara sombra sobre o corpo devera ser
-        // baseado na distancia da fonte de luz ate o objeto.
-        let radius: f32 = 10.0;
-
-        let light_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
-            radius, collision_coordenates
-        );
-
         // self.fill_color(
-        //     canvas,
-        //     collision_coordenates,
-        //     radius,
-        //     pink,
+        //     canvas, coordenate, 2.0_f32, Color::RGB(255, 0, 127)
         // );
-
-        // for body_coordenate in Self::get_coordenates(self.radius, self.position) {
-        for body_coordenate in &self.coordenates {
-            for light_coordenate in &light_coordenates {
-                if body_coordenate.0 <= light_coordenate.0 
-                && body_coordenate.1 >= light_coordenate.1 - radius
-                && body_coordenate.1 <= light_coordenate.1 + radius
-                // && body_coordenate.1 >= (collision_coordenates.1 - radius) && body_coordenate.1 <= (collision_coordenates.1 + radius)
-                {
-                    self.draw_pixel(canvas, (body_coordenate.0, body_coordenate.1));
+        let coordenates: Vec<(f32, f32)> = Self::get_coordenates(2.0_f32, coordenate);
+        
+        for coord in coordenates {
+            for cd in &self.coordenates {
+                if coord.0 >= cd.0 && coord.1 >= cd.1
+                || coord.0 < cd.0 && coord.1 < cd.1 {
+                    self.draw_pixel(canvas, coord);
                 }
             }
         }
+    }
 
-        // for coordenate in Self::get_inner_coordenates(self.radius, self.position) {
-        //     if (coordenate.0 >= collision_coordenates.0 && coordenate.0 <= (collision_coordenates.0 + radius))
-        //     && (coordenate.1 >= (collision_coordenates.1 - radius) && coordenate.1 <= (collision_coordenates.1 + radius))
-        //     {
-        //         self.draw_pixel(canvas, (coordenate.0, coordenate.1));
-        //     }
-        // }
+    pub fn draw_lighted_pixels(
+        &self, canvas: &mut Canvas<Window>, collision_coordenates: Vec<(f32, f32)>
+    ) {
+        // let light_orange: Color = Color::RGB(255, 155, 127);
+        // let light_blue: Color = Color::RGB(52, 204, 235);
+        let pink: Color = Color::RGB(255, 0, 127);
+
+        canvas.set_draw_color(pink);
+
+        let radius: f32 = 10.0;
+
+        for collision_coordenate in collision_coordenates {
+            let light_ball_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
+                radius, collision_coordenate
+            );
+
+            for light_coordenate in light_ball_coordenates {
+                if self.must_draw_light(
+                    light_coordenate, collision_coordenate
+                ) {
+                    self.draw_pixel(canvas, light_coordenate);
+                    // self.draw_light_ball(canvas, light_coordenate)
+               }
+            }
+        }
+    }
+
+    fn must_draw_light(
+        &self,
+        light_coordenate: (f32, f32),
+        collision_coordenate: (f32, f32),
+    ) -> bool {
+        if light_coordenate.0 == collision_coordenate.0
+        && light_coordenate.1 == collision_coordenate.1 {
+            return true
+        } else {
+            return false
+        }
     }
 }
 

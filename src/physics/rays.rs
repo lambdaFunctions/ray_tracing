@@ -21,7 +21,7 @@ impl Ray {
 
         let (cx, cy) = *position;
         let end_circle: u16 = 360;
-        let step: u16 = 2; // Defines how much rays we will have
+        let step: u16 = 1; // Defines how much rays we will have
 
         // TODO: Fazer disso um % do tamanho do radius do light source.
         let mut radius: f32 = 20.0;
@@ -30,7 +30,7 @@ impl Ray {
         
         // TODO: Fazer disto uma equacao que represente ate onde a luz
         // e' propagada dada a forca do brilho da light source.
-        let final_radius: f32 = 300.0; 
+        let final_radius: f32 = 285.0; 
 
         while radius < final_radius {
             let mut degree: u16 = 0;
@@ -60,14 +60,13 @@ impl Ray {
         let mut coordenates: Vec<(f32, f32)> = vec![];
         let mut new_points: Vec<(f32, f32)> = self.points.clone();
 
-        for body_coordenate in &body.coordenates {
-            for light_coordenate in &self.points {
-                if body_coordenate.0 <= light_coordenate.0 
-                && body_coordenate.1 >= light_coordenate.1
-                && body_coordenate.1 <= light_coordenate.1
+        for light_coordenate in &self.points {
+            for body_coordenate in &body.circunference {
+                if light_coordenate.0 > body_coordenate.0
+                && light_coordenate.1 > body_coordenate.1
                 {
                     coordenates.push(*body_coordenate);
-                    new_points.retain(|&x| x != *body_coordenate);
+                    // new_points.retain(|&x| x != *light_coordenate);
                 }
             }
         }
@@ -95,31 +94,6 @@ impl Ray {
     //    // Criar uma outra funcao que verifica se as coordenadas da luz/corpo
     //    // estao dentro dos limites e, se sim, usar na funcao acima
     //    // para tirar e colocar nos vetores.
-    // }
-
-    // pub fn handle_collisions(&self, bodies: Vec<&Body>) -> (f32, f32) {
-    //     let mut coordenates: (f32, f32) = (0.0, 0.0);
-    //     let mut stop: bool = false;
-
-    //     for body in bodies {
-    //         for body_coordenate in &body.coordenates {
-    //             for light_coordenate in self.points.clone() {
-    //                 if body_coordenate.0 <= light_coordenate.0 
-    //                 && body_coordenate.1 >= light_coordenate.1
-    //                 && body_coordenate.1 <= light_coordenate.1
-    //                 {
-    //                     coordenates = *body_coordenate;
-    //                     stop = true;
-    //                     break
-    //                 }
-    //             }
-    //             if stop == true { break }
-    //         }
-    //         // TODO: Quando lidando com mais bodies, preciso tirar esse break
-    //         // e tambem fazer a funcao retornar coordenadas para cada corpo
-    //         if stop == true { break }
-    //     }
-    //     coordenates
     // }
 }
 
