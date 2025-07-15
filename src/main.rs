@@ -35,7 +35,7 @@ fn main() {
     let mut running: bool = true;
     let mut event_queue: sdl2::EventPump = sdl_context.event_pump().unwrap();
 
-    let ball: Body = Body::new(Color::RGB(52, 177, 235), (500.0, 400.0), 30.0, None);
+    let mut ball: Body = Body::new(Color::RGB(52, 177, 235), (500.0, 400.0), 30.0, None);
 
     let light_source: Body = Body::new(
         Color::RGB(255, 255, 255),
@@ -51,9 +51,12 @@ fn main() {
 
         for event in event_queue.poll_iter() {
             match event {
-                // Event::MouseMotion { x, y, .. } => {
-                //     let _mouse_position: (i32, i32) = (x, y);
-                // },
+                Event::MouseMotion { x, y, .. } => {
+                    println!("{:?}", (x, y));
+                    // ball.update((x as f32, y as f32));
+                    ball.position.0 = x as f32;
+                    ball.position.1 = y as f32;
+                },
                 Event::Quit { .. } => {
                     running = false;
                 }
@@ -63,7 +66,7 @@ fn main() {
 
         ball.render(&mut canvas);
         light_source.render(&mut canvas);
-        ray.render(&mut canvas);
+        // ray.render(&mut canvas);
 
         // let collision_coordenates: (f32, f32) = ray.handle_collisions(vec![&ball]);
         let collision_coordenates: Vec<(f32, f32)> = ray.handle_collisions(&ball);

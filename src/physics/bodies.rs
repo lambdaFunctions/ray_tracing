@@ -188,5 +188,10 @@ impl Body {
             return false
         }
     }
+
+    pub fn update(&mut self, position: (f32, f32)) {
+       self.position.0 = position.0;
+       self.position.1 = position.1;
+    }
 }
 
