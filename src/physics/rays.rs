@@ -30,7 +30,8 @@ impl Ray {
         
         // TODO: Fazer disto uma equacao que represente ate onde a luz
         // e' propagada dada a forca do brilho da light source.
-        let final_radius: f32 = 285.0; 
+        // let final_radius: f32 = 285.0; 
+        let final_radius: f32 = 295.0; 
 
         while radius < final_radius {
             let mut degree: u16 = 0;
@@ -58,7 +59,7 @@ impl Ray {
 
     pub fn handle_collisions(&mut self, body: &Body) -> Vec<(f32, f32)> {
         let mut coordenates: Vec<(f32, f32)> = vec![];
-        let mut new_points: Vec<(f32, f32)> = self.points.clone();
+        // let mut new_points: Vec<(f32, f32)> = self.points.clone();
 
         for light_coordenate in &self.points {
             for body_coordenate in &body.circunference {
@@ -70,7 +71,7 @@ impl Ray {
                 }
             }
         }
-        self.points = new_points;
+        // self.points = new_points;
         coordenates
     }
 

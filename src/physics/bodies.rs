@@ -129,69 +129,117 @@ impl Body {
         );
     }
 
-    fn draw_light_ball(
-        &self,
-        canvas: &mut Canvas<Window>,
-        coordenate: (f32, f32),
-    ) {
-        // self.fill_color(
-        //     canvas, coordenate, 2.0_f32, Color::RGB(255, 0, 127)
-        // );
-        let coordenates: Vec<(f32, f32)> = Self::get_coordenates(2.0_f32, coordenate);
-        
-        for coord in coordenates {
-            for cd in &self.coordenates {
-                if coord.0 >= cd.0 && coord.1 >= cd.1
-                || coord.0 < cd.0 && coord.1 < cd.1 {
-                    self.draw_pixel(canvas, coord);
-                }
-            }
-        }
-    }
+    // fn draw_light_ball(
+    //     &self,
+    //     canvas: &mut Canvas<Window>,
+    //     coordenate: (f32, f32),
+    // ) {
+    //     // self.fill_color(
+    //     //     canvas, coordenate, 2.0_f32, Color::RGB(255, 0, 127)
+    //     // );
+    //     let coordenates: Vec<(f32, f32)> = Self::get_coordenates(2.0_f32, coordenate);
+    //     
+    //     for coord in coordenates {
+    //         for cd in &self.coordenates {
+    //             if coord.0 >= cd.0 && coord.1 >= cd.1
+    //             || coord.0 < cd.0 && coord.1 < cd.1 {
+    //                 self.draw_pixel(canvas, coord);
+    //             }
+    //         }
+    //     }
+    // }
 
     pub fn draw_lighted_pixels(
         &self, canvas: &mut Canvas<Window>, collision_coordenates: Vec<(f32, f32)>
     ) {
         // let light_orange: Color = Color::RGB(255, 155, 127);
         // let light_blue: Color = Color::RGB(52, 204, 235);
-        let pink: Color = Color::RGB(255, 0, 127);
+        // let pink: Color = Color::RGB(255, 0, 127);
 
-        canvas.set_draw_color(pink);
+        let layer_1: Color = Color::RGB(187, 238, 240);
+        let layer_2: Color = Color::RGB(162, 239, 242);
+        let layer_3: Color = Color::RGB(145, 226, 230);
+        let layer_4: Color = Color::RGB(128, 213, 217);
 
-        let radius: f32 = 10.0;
+        // let mut min_coord: (f32, f32);
+        let limit: f32 = 12.0;
+        let incremental_limit: f32 = 3.0;
+        let step: f32 = 1.0;
 
-        for collision_coordenate in collision_coordenates {
-            let light_ball_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
-                radius, collision_coordenate
-            );
+        for coord in collision_coordenates {
+            let mut ref_coord: (f32, f32) = coord;
 
-            for light_coordenate in light_ball_coordenates {
-                if self.must_draw_light(
-                    light_coordenate, collision_coordenate
-                ) {
-                    self.draw_pixel(canvas, light_coordenate);
-                    // self.draw_light_ball(canvas, light_coordenate)
-               }
+            while ref_coord.0 <= (coord.0 + limit + incremental_limit) {
+                if ref_coord.0 <= (coord.0 + incremental_limit)
+                {
+                    canvas.set_draw_color(layer_1);
+                    self.draw_pixel(canvas, (ref_coord.0, coord.1));
+                } else
+                if ref_coord.0 <= (coord.0 + incremental_limit * 2.0)
+                {
+                    canvas.set_draw_color(layer_2);
+                    self.draw_pixel(canvas, (ref_coord.0, coord.1));
+                } else
+                if ref_coord.0 <= (coord.0 + incremental_limit * 3.0)
+                {
+                    canvas.set_draw_color(layer_3);
+                    self.draw_pixel(canvas, (ref_coord.0, coord.1));
+                } else
+                if ref_coord.0 <= (coord.0 + incremental_limit * 4.0)
+                {
+                    canvas.set_draw_color(layer_4);
+                    self.draw_pixel(canvas, (ref_coord.0, coord.1));
+                } 
+
+                ref_coord.0 += step;
             }
         }
+
+        // if let Some(&min_tuple) = collision_coordenates.iter()
+        //     .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap()) {
+        //         min_coord = min_tuple;
+        //         let step: f32 = 1.0;
+
+        //         while min_coord.0 <= (min_tuple.0 + limit) {
+        //             self.draw_pixel(canvas, (min_coord.0 + step, min_tuple.1));
+        //             min_coord.0 += step;
+        //         }
+        // }
+
+        // let radius: f32 = 10.0;
+
+        // for collision_coordenate in collision_coordenates {
+        //     let light_ball_coordenates: Vec<(f32, f32)> = Self::get_coordenates(
+        //         radius, collision_coordenate
+        //     );
+
+        //     for light_coordenate in light_ball_coordenates {
+        //         if self.must_draw_light(
+        //             light_coordenate, collision_coordenate
+        //         ) {
+        //             self.draw_pixel(canvas, light_coordenate);
+        //             // self.draw_light_ball(canvas, light_coordenate)
+        //        }
+        //     }
+        // }
     }
 
-    fn must_draw_light(
-        &self,
-        light_coordenate: (f32, f32),
-        collision_coordenate: (f32, f32),
-    ) -> bool {
-        if light_coordenate.0 == collision_coordenate.0
-        && light_coordenate.1 == collision_coordenate.1 {
-            return true
-        } else {
-            return false
-        }
-    }
+    // fn must_draw_light(
+    //     &self,
+    //     light_coordenate: (f32, f32),
+    //     collision_coordenate: (f32, f32),
+    // ) -> bool {
+    //     if light_coordenate.0 == collision_coordenate.0
+    //     && light_coordenate.1 == collision_coordenate.1 {
+    //         return true
+    //     } else {
+    //         return false
+    //     }
+    // }
 
-    pub fn update(&mut self, position: (f32, f32)) {
-       self.position.0 = position.0;
-       self.position.1 = position.1;
-    }
+    // pub fn update(&mut self, position: (f32, f32)) {
+    //    self.position.0 = position.0;
+    //    self.position.1 = position.1;
+    // }
 }
 
